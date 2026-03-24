@@ -1,5 +1,3 @@
-# clipartgenerator
-Android AI Clipart Generator 
 # AI Clipart Generator (Android)
 A production-quality mobile application built for the Frontend Assignment. Generates AI-driven clipart in multiple styles (Cartoon, Anime, Flat, Pixel Art).
 
