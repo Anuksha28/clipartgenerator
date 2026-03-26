@@ -1,4 +1,4 @@
-#Clipart AI — Android App
+# Clipart AI — Android App
 Transform your photos into stunning AI-generated clipart styles.
 
 ## APK Download
