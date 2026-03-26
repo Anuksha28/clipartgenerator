@@ -7,7 +7,7 @@ Transform your photos into stunning AI-generated clipart styles.
 ## Screen Recording
 [Watch Walkthrough](PASTE_YOUR_DRIVE_LINK_HERE)
 
-##🛠Tech Stack
+## 🛠Tech Stack
 - React Native (Expo)
 - NativeWind (Tailwind for RN)
 - Replicate API (stability-ai/sdxl)
@@ -22,7 +22,7 @@ Transform your photos into stunning AI-generated clipart styles.
 - Download to gallery
 - Native share sheet
 
-##⚙️Setup Steps
+## ⚙️Setup Steps
 1. Clone the repo
 2. Run `npm install`
 3. Create `.env` with:
@@ -31,7 +31,7 @@ Transform your photos into stunning AI-generated clipart styles.
    - EXPO_PUBLIC_API_URL
 4. Run `npx expo start`
 
-##🛠Tech Decisions
+## 🛠Tech Decisions
 - Chose Replicate over OpenAI for better image-to-image models
 - Vercel proxy keeps API keys off the device
 - Cloudinary unsigned preset for fast mobile uploads
