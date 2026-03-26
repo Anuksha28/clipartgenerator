@@ -1,19 +1,43 @@
-# AI Clipart Generator (Android)
-A production-quality mobile application built for the Frontend Assignment. Generates AI-driven clipart in multiple styles (Cartoon, Anime, Flat, Pixel Art).
+Clipart AI — Android App
+Transform your photos into stunning AI-generated clipart styles.
 
-## 🚀 Links
-- **APK Download:** [Insert Google Drive Link Here] 
-- **Demo Video:** [Insert Screen Recording Link Here] 
+## APK Download
+[Download APK](PASTE_YOUR_DRIVE_LINK_HERE)
 
-## 🛠 Tech Decisions
-- React Native (Expo):** Chosen for rapid development and high-quality Android performance.
-- NativeWind (Tailwind):** Used to achieve a modern, minimalist glassmorphic UI.
-- Backend Proxy:** (Mention if you used Django/Node) used to secure API keys.
+## Screen Recording
+[Watch Walkthrough](PASTE_YOUR_DRIVE_LINK_HERE)
 
-## ⚖️ Tradeoffs & Prioritization
-- Parallel Generation:** Prioritized firing all 4 style requests at once to improve "perceived speed".
-- Client-side Compression:** Images are resized before upload to ensure the app feels fast.
+## Tech Stack
+- React Native (Expo)
+- NativeWind (Tailwind for RN)
+- Replicate API (stability-ai/sdxl)
+- Cloudinary (image hosting)
+- Vercel (secure API proxy)
 
-## ⚙️ Setup Instructions
-1. Clone the repo: `git clone <repo-url>`
-2. Install dependencies: `npm install`
+## Features
+- Upload photo from gallery or camera
+- Generate 5 styles in parallel (Cartoon, Anime, Flat, Pixel Art, Sketch)
+- Skeleton loaders during generation
+- Before/After comparison slider
+- Download to gallery
+- Native share sheet
+
+## Setup Steps
+1. Clone the repo
+2. Run `npm install`
+3. Create `.env` with:
+   - EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME
+   - EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+   - EXPO_PUBLIC_API_URL
+4. Run `npx expo start`
+
+## Tech Decisions
+- Chose Replicate over OpenAI for better image-to-image models
+- Vercel proxy keeps API keys off the device
+- Cloudinary unsigned preset for fast mobile uploads
+- Parallel Promise.all() for all 5 styles simultaneously
+
+## Tradeoffs
+- Generation takes 30-60s per style (Replicate cold starts)
+- Used emoji instead of icon library for web compatibility
+- Vercel free tier has 60s timeout which fits generation window
