@@ -4,37 +4,36 @@ const UPLOAD_PRESET = process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 export async function uploadImageToCloudinary(
   localUri: string
 ): Promise<string> {
-  const formData = new FormData();
+  console.log("Uploading to Cloudinary...");
+  console.log("Cloud name:", CLOUD_NAME);
+  console.log("Upload preset:", UPLOAD_PRESET);
+  console.log("Local URI:", localUri);
 
-  const filename = localUri.split("/").pop() || "upload.jpg";
-  const match = /\.(\w+)$/.exec(filename);
-  const type = match ? `image/${match[1]}` : "image/jpeg";
+  const formData = new FormData();
 
   formData.append("file", {
     uri: localUri,
-    name: filename,
-    type,
+    name: "upload.jpg",
+    type: "image/jpeg",
   } as any);
 
   formData.append("upload_preset", UPLOAD_PRESET!);
 
-  const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-    {
-      method: "POST",
-      body: formData,
-      headers: {
-        "Accept": "application/json",
-      },
-    }
-  );
+  const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
+  console.log("Posting to:", url);
 
-  const data = await response.json();
-  
+  const response = await fetch(url, {
+    method: "POST",
+    body: formData,
+  });
+
+  const text = await response.text();
+  console.log("Cloudinary raw response:", text);
+
   if (!response.ok) {
-    console.error("Cloudinary error:", data);
-    throw new Error(data.error?.message || "Upload failed");
+    throw new Error(`Upload failed: ${text}`);
   }
 
+  const data = JSON.parse(text);
   return data.secure_url;
 }
