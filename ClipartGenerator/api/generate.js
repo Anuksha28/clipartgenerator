@@ -14,9 +14,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Upload base64 to Cloudinary from server side
+    // First upload to Cloudinary to get public URL
     let publicImageUrl = imageUrl;
-    
     if (imageUrl.startsWith("data:")) {
       const cloudinaryRes = await fetch(
         `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`,
@@ -30,77 +29,40 @@ export default async function handler(req, res) {
         }
       );
       const cloudData = await cloudinaryRes.json();
-      if (!cloudData.secure_url) {
-        return res.status(500).json({ 
-          error: "Cloudinary upload failed", 
-          details: cloudData 
-        });
+      if (cloudData.secure_url) {
+        publicImageUrl = cloudData.secure_url;
       }
-      publicImageUrl = cloudData.secure_url;
     }
 
-    // Call Replicate
+    // Use Hugging Face Inference API
     const response = await fetch(
-      "https://api.replicate.com/v1/predictions",
+      "https://api-inference.huggingface.co/models/lllyasviel/sd-controlnet-canny",
       {
         method: "POST",
         headers: {
-          Authorization: `Token ${process.env.REPLICATE_API_TOKEN}`,
+          Authorization: `Bearer ${process.env.HUGGINGFACE_API_TOKEN}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          version:
-            "ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4",
-          input: {
-            prompt: prompt,
+          inputs: {
             image: publicImageUrl,
-            prompt_strength: 0.8,
-            num_inference_steps: 20,
-            guidance_scale: 7.5,
+            prompt: prompt,
           },
         }),
       }
     );
 
-    const prediction = await response.json();
-
-    if (!prediction.id) {
-      return res.status(500).json({
-        error: "Replicate failed",
-        details: prediction,
-      });
+    if (!response.ok) {
+      const error = await response.text();
+      return res.status(500).json({ error: "HF failed", details: error });
     }
 
-    // Poll for result
-    let result = prediction;
-    let attempts = 0;
+    // HF returns image bytes directly
+    const buffer = await response.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString("base64");
+    const outputUrl = `data:image/png;base64,${base64}`;
 
-    while (
-      result.status !== "succeeded" &&
-      result.status !== "failed" &&
-      attempts < 60
-    ) {
-      await new Promise((r) => setTimeout(r, 2000));
-      const poll = await fetch(
-        `https://api.replicate.com/v1/predictions/${result.id}`,
-        {
-          headers: {
-            Authorization: `Token ${process.env.REPLICATE_API_TOKEN}`,
-          },
-        }
-      );
-      result = await poll.json();
-      attempts++;
-    }
-
-    if (result.status === "failed") {
-      return res.status(500).json({ error: "Generation failed" });
-    }
-
-    const output = Array.isArray(result.output)
-      ? result.output[0]
-      : result.output;
-    return res.status(200).json({ output });
+    return res.status(200).json({ output: outputUrl });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
