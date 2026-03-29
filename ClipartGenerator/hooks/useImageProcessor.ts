@@ -15,14 +15,15 @@ export function useImageProcessor() {
         return null;
       }
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-        base64: false,
-      });
-      if (result.canceled) return null;
-      return result.assets[0].uri;
+  mediaTypes: ["images"],
+  allowsEditing: true,
+  aspect: [1, 1],
+  quality: 0.5,
+  base64: true,
+});
+if (result.canceled) return null;
+const asset = result.assets[0];
+return asset.uri;
     } catch (e) {
       setError("Failed to open gallery");
       return null;
@@ -42,9 +43,12 @@ export function useImageProcessor() {
         aspect: [1, 1],
         quality: 0.8,
         base64: false,
+        exif: false,
       });
       if (result.canceled) return null;
-      return result.assets[0].uri;
+      const uri = result.assets[0].uri;
+      const fixedUri = uri.startsWith("file://") ? uri : `file://${uri}`;
+      return fixedUri;
     } catch (e) {
       setError("Failed to open camera");
       return null;
@@ -58,7 +62,6 @@ export function useImageProcessor() {
       setIsProcessing(true);
       setError(null);
 
-      // Compress image
       const compressed = await ImageManipulator.manipulateAsync(
         localUri,
         [{ resize: { width: 768 } }],

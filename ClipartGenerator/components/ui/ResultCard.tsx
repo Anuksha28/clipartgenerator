@@ -59,10 +59,11 @@ export function ResultCard({ result, onRetry }: Props) {
   return (
     <View style={styles.card}>
       <Image
-        source={{ uri: result.imageUrl }}
-        style={styles.image}
-        resizeMode="cover"
-      />
+  source={{ uri: result.imageUrl }}
+  style={styles.image}
+  resizeMode="cover"
+  onError={(e) => console.log("Image load error:", e.nativeEvent.error)}
+/>
       <View style={styles.footer}>
         <Text style={styles.label}>
           {result.emoji} {result.label}

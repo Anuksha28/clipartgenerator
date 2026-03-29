@@ -25,8 +25,6 @@ const COLORS = {
   glass: "rgba(255,255,255,0.7)",
 };
 
-const FLOATING_CLIPARTS = ["🎨", "✨", "👾", "✏️", "🔷"];
-
 export default function HomeScreen() {
   const router = useRouter();
   const {
@@ -37,20 +35,27 @@ export default function HomeScreen() {
     error,
   } = useImageProcessor();
   const [previewUri, setPreviewUri] = useState<string | null>(null);
+  const [localUri, setLocalUri] = useState<string | null>(null);
 
   async function handleGallery() {
     const uri = await pickFromGallery();
-    if (uri) setPreviewUri(uri);
+    if (uri) {
+      setPreviewUri(uri);
+      setLocalUri(uri);
+    }
   }
 
   async function handleCamera() {
     const uri = await pickFromCamera();
-    if (uri) setPreviewUri(uri);
+    if (uri) {
+      setPreviewUri(uri);
+      setLocalUri(uri);
+    }
   }
 
   async function handleGenerate() {
-    if (!previewUri) return;
-    const cloudUrl = await processAndUpload(previewUri);
+    if (!localUri) return;
+    const cloudUrl = await processAndUpload(localUri);
     if (cloudUrl) {
       router.push({
         pathname: "/generate",
@@ -77,7 +82,7 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        {/* Floating style pills */}
+        {/* Style pills */}
         <View style={styles.pillsRow}>
           {["Cartoon", "Anime", "Pixel", "Sketch", "Flat"].map((s) => (
             <View key={s} style={styles.pill}>
@@ -96,7 +101,6 @@ export default function HomeScreen() {
                 Best results with a clear face photo
               </Text>
             </View>
-
             <View style={styles.btnRow}>
               <TouchableOpacity
                 style={styles.pickBtn}
@@ -117,14 +121,21 @@ export default function HomeScreen() {
         ) : (
           <View style={styles.previewCard}>
             <Image
-              source={{ uri: previewUri }}
+              source={{ uri: previewUri ?? undefined }}
               style={styles.preview}
               resizeMode="cover"
+              onError={(e) =>
+                console.log("Image error:", e.nativeEvent.error)
+              }
+              onLoad={() => console.log("Image loaded successfully!")}
             />
             <View style={styles.previewOverlay}>
               <TouchableOpacity
                 style={styles.changeBtn}
-                onPress={() => setPreviewUri(null)}
+                onPress={() => {
+                  setPreviewUri(null);
+                  setLocalUri(null);
+                }}
               >
                 <Text style={styles.changeBtnText}>Change Photo</Text>
               </TouchableOpacity>
@@ -138,7 +149,6 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Generate button */}
         {previewUri && (
           <TouchableOpacity
             style={[
@@ -176,7 +186,7 @@ export default function HomeScreen() {
           <View style={styles.infoCard}>
             <Text style={styles.infoEmoji}>⬇️</Text>
             <Text style={styles.infoTitle}>Save</Text>
-            <Text style={styles.infoDesc}>Download & share</Text>
+            <Text style={styles.infoDesc}>Download and share</Text>
           </View>
         </View>
       </ScrollView>
@@ -313,17 +323,19 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   previewCard: {
-  borderRadius: 28,
-  overflow: "hidden",
-  marginBottom: 16,
-  elevation: 6,
-  backgroundColor: "#000",
-},
+    borderRadius: 28,
+    overflow: "hidden",
+    marginBottom: 16,
+    elevation: 6,
+    backgroundColor: "#e0e0e0",
+    position: "relative",
+    minHeight: 350,
+  },
   preview: {
-  width: "100%",
-  aspectRatio: 1,
-  backgroundColor: "#222",
-},
+    width: "100%",
+    height: 350,
+    backgroundColor: "#e0e0e0",
+  },
   previewOverlay: {
     position: "absolute",
     bottom: 16,
@@ -331,7 +343,7 @@ const styles = StyleSheet.create({
     right: 16,
   },
   changeBtn: {
-    backgroundColor: "rgba(255,255,255,0.9)",
+    backgroundColor: "rgba(255,255,255,0.92)",
     paddingVertical: 10,
     borderRadius: 12,
     alignItems: "center",

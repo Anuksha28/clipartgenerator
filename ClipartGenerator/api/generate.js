@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // First upload to Cloudinary to get public URL
+    // Upload to Cloudinary first to get public URL
     let publicImageUrl = imageUrl;
     if (imageUrl.startsWith("data:")) {
       const cloudinaryRes = await fetch(
@@ -29,40 +29,41 @@ export default async function handler(req, res) {
         }
       );
       const cloudData = await cloudinaryRes.json();
-      if (cloudData.secure_url) {
-        publicImageUrl = cloudData.secure_url;
+      if (!cloudData.secure_url) {
+        return res.status(500).json({
+          error: "Cloudinary upload failed",
+          details: cloudData,
+        });
       }
+      publicImageUrl = cloudData.secure_url;
     }
 
-    // Use Hugging Face Inference API
+    // Call DeepAI cartoon API
+    const formData = new FormData();
+    formData.append("image", publicImageUrl);
+    formData.append("text", prompt);
+
     const response = await fetch(
-      "https://api-inference.huggingface.co/models/lllyasviel/sd-controlnet-canny",
+      "https://api.deepai.org/api/toonify",
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${process.env.HUGGINGFACE_API_TOKEN}`,
-          "Content-Type": "application/json",
+          "api-key": process.env.DEEPAI_API_KEY,
         },
-        body: JSON.stringify({
-          inputs: {
-            image: publicImageUrl,
-            prompt: prompt,
-          },
-        }),
+        body: formData,
       }
     );
 
-    if (!response.ok) {
-      const error = await response.text();
-      return res.status(500).json({ error: "HF failed", details: error });
+    const data = await response.json();
+
+    if (!data.output_url) {
+      return res.status(500).json({
+        error: "DeepAI failed",
+        details: data,
+      });
     }
 
-    // HF returns image bytes directly
-    const buffer = await response.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString("base64");
-    const outputUrl = `data:image/png;base64,${base64}`;
-
-    return res.status(200).json({ output: outputUrl });
+    return res.status(200).json({ output: data.output_url });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
